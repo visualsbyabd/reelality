@@ -1,5 +1,6 @@
 import 'dart:async';
-
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/category_model.dart';
 import '../services/category_service.dart';
@@ -19,13 +20,33 @@ class CategoryController extends AsyncNotifier<List<CategoryModel>> {
   @override
   FutureOr<List<CategoryModel>> build() async {
     _service = ref.read(categoryServiceProvider);
-    return await _service.getAll();
+
+    // 1️⃣ Get cached data immediately
+    final cached = await _service.getCachedCategories();
+
+    // 2️⃣ If we have cached data, show it right away
+    if (cached.isNotEmpty) {
+      // Render cached instantly
+      state = AsyncData(cached);
+
+      // 3️⃣ Try to refresh in background (non-blocking)
+      unawaited(_refreshInBackground());
+      return cached;
+    }
+
+    // 4️⃣ No cache? Then wait for network normally
+    final fresh = await _service.getAll();
+    return fresh;
   }
 
-  Future<void> refreshCategories() async {
-    state = const AsyncLoading();
-    final categories = await _service.getAll();
-    state = AsyncData(categories);
+  Future<void> _refreshInBackground() async {
+    try {
+      final fresh = await _service.getAll();
+      // Update state silently if new data exists
+      if (fresh.isNotEmpty) state = AsyncData(fresh);
+    } catch (_) {
+      // Don’t throw or interrupt UI
+    }
   }
 
   Future<void> followCategory(String id, String userId) async {

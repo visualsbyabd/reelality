@@ -1,4 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:v1/components/BottomNavBar.dart';
 import 'package:v1/components/DefaultAppBar.dart';
@@ -34,6 +36,18 @@ class _CategoriesPageState extends ConsumerState<CategoriesPage>
                 if (categories.isEmpty) {
                   return const LoadingScreen(message: "Loading Categories");
                 }
+                // Precache all category images using context here
+                for (final cat in categories) {
+                  if (cat.iconUrl != null && cat.iconUrl!.isNotEmpty) {
+                    precacheImage(
+                      CachedNetworkImageProvider(
+                        "${dotenv.env["API_URL"]!}${cat.iconUrl!}",
+                      ),
+                      context,
+                    );
+                  }
+                }
+
                 return CategoriesScreen();
               },
               loading: () => const LoadingScreen(message: "Loading Categories"),
