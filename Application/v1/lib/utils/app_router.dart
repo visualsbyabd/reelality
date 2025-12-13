@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:v1/screens/CategoryPage.dart';
-import 'package:v1/screens/HomePage.dart';
+import 'package:v1/pages/HomePage.dart';
 
 @AutoRouterConfig()
 class AppRouter extends RootStackRouter {

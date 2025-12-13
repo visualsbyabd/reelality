@@ -1,11 +1,14 @@
 import 'dart:math' as math;
 
 import 'package:auto_route/auto_route.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 import 'package:v1/models/category_model.dart';
 import 'package:v1/prefs/theme.dart';
+import 'package:v1/utils/cache_manager.dart';
 import 'package:v1/utils/colorManagement.dart';
 import 'package:v1/utils/formatters.dart';
 
@@ -65,9 +68,18 @@ class FeaturedCategoryCard extends StatelessWidget {
                       ),
                       child: Padding(
                         padding: EdgeInsets.all(4),
-                        child: Image.network(
-                          "${dotenv.env['API_URL']}/assets/categories/${category.iconUrl!}",
-                          fit: BoxFit.contain,
+                        child: CachedNetworkImage(
+                          imageUrl:
+                              "${dotenv.env['API_URL']}/assets/categories/${category.iconUrl!}",
+                          // TODO: Replace with proper icon placeholder
+                          placeholder: (_, __) =>
+                              const CircularProgressIndicator(strokeWidth: 2),
+                          errorWidget: (_, __, ___) =>
+                              const Icon(Icons.broken_image),
+                          fadeInDuration: const Duration(milliseconds: 300),
+                          memCacheWidth: 512,
+                          memCacheHeight: 512,
+                          cacheManager: AppCacheManager.instance,
                         ),
                       ),
                     ),
@@ -95,7 +107,7 @@ class FeaturedCategoryCard extends StatelessWidget {
                       style: TextStyle(
                         color: kCream,
                         fontFamily: kEnglishSecondaryFont,
-                        fontSize: 16,
+                        fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
