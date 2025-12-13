@@ -1,15 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:v1/prefs/theme.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:v1/utils/app_router.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 final AppRouter router = AppRouter();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Hive init
+  final appDocumentDirectory = await getApplicationDocumentsDirectory();
+  await Hive.initFlutter(appDocumentDirectory.path);
+  await Hive.openBox('categoriesBox');
+
+  // Load .env
   await dotenv.load(fileName: ".env");
+
+  // Init Shared Preferences
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   await prefs.setString('userId', '6929dbed9fe1f8c8f3e5afa8');
 
