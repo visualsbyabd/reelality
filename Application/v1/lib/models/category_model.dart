@@ -33,6 +33,11 @@ class CategoryModel {
     this.followers,
   });
 
+  bool isFollowedByUser(String? userId) {
+    if (followers == null) return false;
+    return followers!.contains(userId);
+  }
+
   factory CategoryModel.fromJson(Map<String, dynamic> json) =>
       _$CategoryModelFromJson(json);
   Map<String, dynamic> toJson() => _$CategoryModelToJson(this);

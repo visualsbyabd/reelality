@@ -49,17 +49,31 @@ class CategoryController extends AsyncNotifier<List<CategoryModel>> {
     }
   }
 
-  Future<void> followCategory(String id, String userId) async {
+  Future<void> followCategory(String? id, String? userId) async {
+    if (id == null || userId == null) return;
     final updated = await _service.followCategory(id, userId);
     final current = state.value ?? [];
     final newList = current.map((cat) => cat.id == id ? updated : cat).toList();
     state = AsyncData(newList);
   }
 
-  Future<void> unfollowCategory(String id, String userId) async {
+  Future<void> unfollowCategory(String? id, String? userId) async {
+    if (id == null || userId == null) return;
     final updated = await _service.unfollowCategory(id, userId);
     final current = state.value ?? [];
     final newList = current.map((cat) => cat.id == id ? updated : cat).toList();
     state = AsyncData(newList);
+  }
+
+  Future<CategoryModel?> getCategoryById(String id) async {
+    final current = state.value ?? [];
+    try {
+      final category = current.firstWhere((category) => category.id == id);
+      print("Found category: ${category.name}");
+      return category;
+    } catch (e) {
+      print("Category with ID $id not found: $e");
+      return null;
+    }
   }
 }

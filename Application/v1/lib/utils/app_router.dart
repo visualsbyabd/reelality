@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:v1/screens/CategoryPage.dart';
 import 'package:v1/pages/HomePage.dart';
+import 'package:v1/screens/SingleCategoryScreen.dart';
 
 @AutoRouterConfig()
 class AppRouter extends RootStackRouter {
@@ -21,7 +21,9 @@ class AppRouter extends RootStackRouter {
       name: "CategoryPath",
       path: "/category/:categoryId",
       builder: (context, data) {
-        return CategoryPage(categoryId: data.params.getString("categoryId"));
+        return SingleCategoryPage(
+          categoryId: data.params.getString("categoryId"),
+        );
       },
     ),
   ];

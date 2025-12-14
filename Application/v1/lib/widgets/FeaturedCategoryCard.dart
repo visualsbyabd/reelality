@@ -68,18 +68,21 @@ class FeaturedCategoryCard extends StatelessWidget {
                       ),
                       child: Padding(
                         padding: EdgeInsets.all(4),
-                        child: CachedNetworkImage(
-                          imageUrl:
-                              "${dotenv.env['API_URL']}/assets/categories/${category.iconUrl!}",
-                          // TODO: Replace with proper icon placeholder
-                          placeholder: (_, __) =>
-                              const CircularProgressIndicator(strokeWidth: 2),
-                          errorWidget: (_, __, ___) =>
-                              const Icon(Icons.broken_image),
-                          fadeInDuration: const Duration(milliseconds: 300),
-                          memCacheWidth: 512,
-                          memCacheHeight: 512,
-                          cacheManager: AppCacheManager.instance,
+                        child: Hero(
+                          tag: "category_icon_${category.id}",
+
+                          child: CachedNetworkImage(
+                            imageUrl:
+                                "${dotenv.env['API_URL']}/assets/categories/${category.iconUrl!}",
+                            placeholder: (_, __) =>
+                                const CircularProgressIndicator(strokeWidth: 2),
+                            errorWidget: (_, __, ___) =>
+                                const Icon(Icons.broken_image),
+                            fadeInDuration: const Duration(milliseconds: 300),
+                            memCacheWidth: 512,
+                            memCacheHeight: 512,
+                            cacheManager: AppCacheManager.instance,
+                          ),
                         ),
                       ),
                     ),
