@@ -22,7 +22,7 @@ void main() async {
 
   // Init Shared Preferences
   final SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.setString('userId', '6929dbed9fe1f8c8f3e5afa8');
+  await prefs.remove('userId');
 
   runApp(ProviderScope(child: ReelalityApp()));
 }

@@ -69,10 +69,8 @@ class CategoryController extends AsyncNotifier<List<CategoryModel>> {
     final current = state.value ?? [];
     try {
       final category = current.firstWhere((category) => category.id == id);
-      print("Found category: ${category.name}");
       return category;
     } catch (e) {
-      print("Category with ID $id not found: $e");
       return null;
     }
   }
