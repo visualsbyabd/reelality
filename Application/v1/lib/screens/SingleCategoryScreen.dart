@@ -3,7 +3,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:riverpod/src/async_notifier.dart';
 import 'package:v1/components/DefaultAppBar.dart';
 import 'package:v1/controllers/category_controller.dart';
 import 'package:v1/models/category_model.dart';
