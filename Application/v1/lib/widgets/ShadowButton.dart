@@ -1,23 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:v1/prefs/theme.dart';
 
-class SecondaryButton extends StatefulWidget {
+class ShadowButton extends StatefulWidget {
   final String title;
   final VoidCallback onPressed;
-  final Widget? prefixIcon, suffixIcon;
-  const SecondaryButton({
-    super.key,
-    required this.title,
-    required this.onPressed,
-    this.prefixIcon,
-    this.suffixIcon,
-  });
+  const ShadowButton({super.key, required this.title, required this.onPressed});
 
   @override
-  State<SecondaryButton> createState() => _SecondaryButtonState();
+  State<ShadowButton> createState() => _ShadowButtonState();
 }
 
-class _SecondaryButtonState extends State<SecondaryButton> {
+class _ShadowButtonState extends State<ShadowButton> {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
@@ -25,22 +18,17 @@ class _SecondaryButtonState extends State<SecondaryButton> {
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 500),
-      decoration: BoxDecoration(
-        border: BoxBorder.all(
-          width: 2,
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.25),
-        ),
-        borderRadius: BorderRadius.all(Radius.circular(15)),
-        color: theme.colorScheme.onSurface.withValues(alpha: 0.25),
-      ),
+      color: Colors.transparent,
       child: ElevatedButton(
-        style: ButtonStyle(backgroundColor: WidgetStateColor.transparent),
+        style: ButtonStyle(
+          backgroundColor: WidgetStateColor.transparent,
+          shadowColor: WidgetStateColor.transparent,
+        ),
         onPressed: widget.onPressed,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            widget.prefixIcon ?? SizedBox(),
             Text(
               widget.title,
               style: TextStyle(
@@ -49,7 +37,6 @@ class _SecondaryButtonState extends State<SecondaryButton> {
                 fontWeight: FontWeight.w400,
               ),
             ),
-            widget.suffixIcon ?? SizedBox(),
           ],
         ),
       ),

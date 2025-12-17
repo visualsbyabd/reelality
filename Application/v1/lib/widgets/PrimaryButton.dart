@@ -35,22 +35,27 @@ class _PrimaryButtonState extends State<PrimaryButton> {
             : theme.colorScheme.primary,
       ),
       child: ElevatedButton(
-        style: ButtonStyle(backgroundColor: WidgetStateColor.transparent),
+        style: ButtonStyle(
+          backgroundColor: WidgetStateColor.transparent,
+          shadowColor: WidgetStateColor.transparent,
+        ),
         onPressed: widget.onPressed,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            widget.prefixIcon!,
+            widget.prefixIcon ?? SizedBox(),
             Text(
               widget.title,
               style: TextStyle(
-                color: widget.isActive ? theme.colorScheme.primary : kSoftBlack,
+                color: widget.isActive
+                    ? theme.colorScheme.primary
+                    : theme.scaffoldBackgroundColor,
                 fontSize: 16,
                 fontWeight: FontWeight.w400,
               ),
             ),
-            widget.suffixIcon!,
+            widget.suffixIcon ?? SizedBox(),
           ],
         ),
       ),
