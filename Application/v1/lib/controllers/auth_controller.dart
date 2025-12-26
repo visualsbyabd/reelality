@@ -1,7 +1,13 @@
 import 'dart:async';
 
+import 'package:auto_route/auto_route.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:v1/main.dart';
+import 'package:v1/models/user_model.dart';
 import 'package:v1/services/auth_service.dart';
+import 'package:v1/utils/app_router.dart';
 
 enum AuthMode {
   LOGIN,
@@ -102,5 +108,26 @@ class AuthController extends AsyncNotifier<AuthData> {
         languages: languages ?? current.languages,
       ),
     );
+  }
+
+  Future<int> login({required String email, required String password}) async {
+    try {
+      final authResult = await _service.login(email: email, password: password);
+      switch (authResult["statusCode"]) {
+        case 1:
+          final SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString(
+            "userId",
+            (authResult["user"] as UserModel).id!,
+          );
+
+          return authResult["statusCode"];
+        default:
+          return authResult["statusCode"];
+      }
+    } catch (e) {
+      print(e);
+      return -2;
+    }
   }
 }

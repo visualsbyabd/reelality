@@ -20,10 +20,6 @@ void main() async {
   // Load .env
   await dotenv.load(fileName: ".env");
 
-  // Init Shared Preferences
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.remove('userId');
-
   runApp(ProviderScope(child: ReelalityApp()));
 }
 

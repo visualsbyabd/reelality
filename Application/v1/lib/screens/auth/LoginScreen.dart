@@ -2,16 +2,19 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_social_button/flutter_social_button.dart';
 import 'package:gap/gap.dart';
-import 'package:hive_flutter/adapters.dart';
 import 'package:v1/controllers/auth_controller.dart';
+import 'package:v1/main.dart';
 import 'package:v1/prefs/theme.dart';
+import 'package:v1/services/auth_service.dart';
+import 'package:v1/utils/regexps.dart';
 import 'package:v1/widgets/MorphSwitch.dart';
 import 'package:v1/widgets/PrimaryButton.dart';
-import 'package:v1/widgets/SecondaryButton.dart';
+import 'package:v1/widgets/PrimaryIconButton.dart';
 import 'package:v1/widgets/ShadowButton.dart';
 
 class CircleBlurPainter extends CustomPainter {
@@ -46,9 +49,14 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   final Random _rand = Random();
   late Alignment _orb1, _orb2, _orb3;
+  late Timer animationTimer;
+  late TextEditingController emailController, passwordController;
+  late String email, password, statusMsg;
+  late bool isLoading, emailError, passwordError, keepData;
+
   Alignment _randomCorner(current) {
     final corners = [
       Alignment.topLeft,
@@ -64,8 +72,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void dispose() {
+    super.dispose();
+    animationTimer.cancel();
+    emailController.dispose();
+    passwordController.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
+    isLoading = false;
+    keepData = false;
+    emailError = false;
+    passwordError = false;
+    email = "";
+    password = "";
+    statusMsg = "";
+    emailController = TextEditingController();
+    passwordController = TextEditingController();
+    emailController.addListener(() {
+      setState(() {
+        email = emailController.text;
+      });
+    });
+    passwordController.addListener(() {
+      setState(() {
+        password = passwordController.text;
+      });
+    });
     setState(() {
       _orb1 = _randomCorner(Alignment.topLeft);
       _orb2 = _randomCorner(Alignment.bottomRight);
@@ -83,7 +121,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         _orb3 = _randomCorner(_orb3);
       });
     });
-    Timer.periodic(const Duration(seconds: 5), (t) {
+    animationTimer = Timer.periodic(const Duration(seconds: 5), (t) {
       setState(() {
         _orb1 = _randomCorner(_orb1);
         _orb2 = _randomCorner(_orb2);
@@ -94,6 +132,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final authController = ref.read(authControllerProvider.notifier);
     final Size mqs = MediaQuery.of(context).size;
     return Scaffold(
@@ -196,21 +235,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                             Gap(20),
                             TextField(
                               style: TextStyle(color: kCream),
+                              controller: emailController,
                               decoration: InputDecoration(
                                 hintText: "Email",
                                 hintStyle: TextStyle(color: kCream),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: kCream,
-                                    width: 1.0,
-                                  ),
+
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: emailError
+                                      ? BorderSide(
+                                          color: Colors.red.shade700,
+                                          width: 1.0,
+                                        )
+                                      : BorderSide(color: kPrimary, width: 2.0),
                                   borderRadius: BorderRadius.circular(12.0),
                                 ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: kPrimary,
-                                    width: 2.0,
-                                  ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: emailError
+                                      ? BorderSide(
+                                          color: Colors.red.shade700,
+                                          width: 1.0,
+                                        )
+                                      : BorderSide(color: kPrimary, width: 2.0),
                                   borderRadius: BorderRadius.circular(12.0),
                                 ),
                               ),
@@ -218,6 +263,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                             Gap(12),
                             TextField(
                               obscureText: true,
+                              controller: passwordController,
                               style: TextStyle(color: kCream),
                               decoration: InputDecoration(
                                 suffixIcon: Container(
@@ -229,56 +275,153 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                   ),
                                   clipBehavior: Clip.hardEdge,
                                   width: mqs.width * 0.25,
-                                  height: mqs.height * 0.05,
+                                  height: mqs.height * 0.04,
                                   child: PrimaryButton(
                                     title: "Forget",
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      authController.setAuthMode(
+                                        AuthMode.FORGOT_PASSWORD,
+                                      );
+                                    },
                                   ),
                                 ),
                                 hintText: "Password",
                                 hintStyle: TextStyle(color: kCream),
                                 enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: kCream,
-                                    width: 1.0,
-                                  ),
+                                  borderSide: passwordError
+                                      ? BorderSide(
+                                          color: Colors.red.shade700,
+                                          width: 1.0,
+                                        )
+                                      : BorderSide(color: kCream, width: 1.0),
                                   borderRadius: BorderRadius.circular(12.0),
                                 ),
                                 focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: kPrimary,
-                                    width: 2.0,
-                                  ),
+                                  borderSide: passwordError
+                                      ? BorderSide(
+                                          color: Colors.red.shade700,
+                                          width: 1.0,
+                                        )
+                                      : BorderSide(color: kCream, width: 1.0),
                                   borderRadius: BorderRadius.circular(12.0),
                                 ),
                               ),
                             ),
                             Spacer(),
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                Text(
-                                  "Remember my data",
-                                  style: TextStyle(
-                                    color: kCream,
-                                    fontFamily: kEnglishPrimaryFont,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w300,
-                                  ),
-                                ),
-                                MorphSwitch(
-                                  width: 60,
-                                  initialValue: false,
-                                  onChanged: (val) {},
+                                Spacer(),
+                                PrimaryIconButton(
+                                  isLoading: isLoading,
+                                  isActive: isLoading,
+                                  onPressed: () async {
+                                    if (email.isEmpty ||
+                                        !RegExps.emailRegExp.hasMatch(email)) {
+                                      setState(() {
+                                        emailError = true;
+                                        statusMsg =
+                                            "Please, Enter a valid Email!";
+                                      });
+                                      return;
+                                    }
+                                    setState(() {
+                                      emailError = false;
+                                      statusMsg = "";
+                                    });
+                                    if (password.length < 8 ||
+                                        password.length > 32) {
+                                      setState(() {
+                                        passwordError = true;
+                                        statusMsg =
+                                            "Please, Enter a valid Password!";
+                                      });
+                                      return;
+                                    }
+                                    setState(() {
+                                      passwordError = false;
+                                      statusMsg = "Loading...";
+                                      isLoading = true;
+                                    });
+                                    final loginResult = await authController
+                                        .login(
+                                          email: email,
+                                          password: password,
+                                        );
+                                    switch (loginResult) {
+                                      case 1:
+                                        router.replaceAll([
+                                          NamedRoute("HomePagePath"),
+                                        ]);
+                                        return;
+                                      case 0:
+                                        setState(() {
+                                          passwordController.text = "";
+                                          password = "";
+                                          passwordError = true;
+                                          statusMsg = "Wrong Passowrd!";
+                                          isLoading = false;
+                                        });
+                                        Future.delayed(
+                                          const Duration(seconds: 5),
+                                          () {
+                                            setState(() {
+                                              passwordError = false;
+                                              statusMsg = "";
+                                            });
+                                          },
+                                        );
+                                        return;
+                                      case -1:
+                                        setState(() {
+                                          isLoading = false;
+                                          emailController.text = "";
+                                          email = "";
+                                          emailError = true;
+                                          passwordController.text = "";
+                                          password = "";
+                                          passwordError = true;
+                                          statusMsg = "User isn't Existed!";
+                                        });
+                                        Future.delayed(
+                                          const Duration(seconds: 5),
+                                          () {
+                                            setState(() {
+                                              emailError = false;
+                                              passwordError = false;
+                                              statusMsg = "";
+                                            });
+                                          },
+                                        );
+                                      case -2:
+                                        setState(() {
+                                          statusMsg =
+                                              "Please, Try again later!";
+                                        });
+                                        Future.delayed(
+                                          const Duration(seconds: 5),
+                                          () {
+                                            setState(() {
+                                              statusMsg = "";
+                                            });
+                                          },
+                                        );
+                                    }
+                                  },
+                                  icon: FontAwesomeIcons.chevronRight,
                                 ),
                               ],
                             ),
                             Spacer(),
                             Center(
-                              child: ShadowButton(
-                                title: "Click here for more info",
-                                onPressed: () {},
+                              child: Text(
+                                statusMsg,
+                                style: TextStyle(
+                                  color: kCream.withValues(alpha: 0.5),
+                                  fontFamily: kEnglishSecondaryFont,
+                                  fontSize: 14,
+                                ),
                               ),
                             ),
                           ],
